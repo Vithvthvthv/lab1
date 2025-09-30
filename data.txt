@@ -1,0 +1,12 @@
+Pipe parameters:
+Name: unknown
+Length: unknown
+Diameter: unknown
+Under repair: yes
+
+CS parameters:
+Name: cs
+Number of workshops: 5
+Number of working workshops: 6
+Classification: unknown
+Under repair: yes
