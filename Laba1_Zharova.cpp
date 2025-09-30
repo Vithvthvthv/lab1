@@ -20,6 +20,11 @@ struct Compress {
     bool working;
 };
 
+// Function to clear input buffer
+void clearInputBuffer() {
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
 // Function to check if pipe is created
 bool isPipeCreated(const Pipe& pipe) {
     return !pipe.name.empty() || pipe.length != -1 || pipe.diameter != -1;
@@ -39,14 +44,15 @@ bool hasData(const Pipe& pipe, const Compress& compstation) {
 // 1. Function to read pipe data from console
 void readPipeFromConsole(Pipe& pipe) {
     cout << "Enter pipe name: ";
-    cin >> pipe.name;
+    clearInputBuffer();
+    getline(cin, pipe.name);
 
     cout << "Enter pipe length (km): ";
     cin >> pipe.length;
     while (cin.fail() || pipe.length < 0) {
         cout << "Error! Enter a valid positive number: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearInputBuffer();
         cin >> pipe.length;
     }
 
@@ -55,7 +61,7 @@ void readPipeFromConsole(Pipe& pipe) {
     while (cin.fail() || pipe.diameter < 0) {
         cout << "Error! Enter a valid positive number: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearInputBuffer();
         cin >> pipe.diameter;
     }
 
@@ -64,7 +70,7 @@ void readPipeFromConsole(Pipe& pipe) {
     while (cin.fail()) {
         cout << "Error! Enter 0 or 1: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearInputBuffer();
         cin >> pipe.repair;
     }
 
@@ -95,7 +101,7 @@ void editPipeRepair(Pipe& pipe) {
     while (cin.fail()) {
         cout << "Error! Enter 0 or 1: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearInputBuffer();
         cin >> pipe.repair;
     }
 
@@ -152,14 +158,15 @@ void stopWorkshop(Compress& compstation) {
 // Function to add compressor station
 void addCompressorStation(Compress& compstation) {
     cout << "Enter compressor station name: ";
-    cin >> compstation.name;
+    clearInputBuffer();
+    getline(cin, compstation.name);
 
     cout << "Enter number of workshops: ";
     cin >> compstation.count;
     while (cin.fail() || compstation.count < 0) {
         cout << "Error! Enter a valid positive number: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearInputBuffer();
         cin >> compstation.count;
     }
 
@@ -168,19 +175,20 @@ void addCompressorStation(Compress& compstation) {
     while (cin.fail() || compstation.count_working < 0 || compstation.count_working > compstation.count) {
         cout << "Error! Enter a valid number (0-" << compstation.count << "): ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearInputBuffer();
         cin >> compstation.count_working;
     }
 
     cout << "Enter classification: ";
-    cin >> compstation.classification;
+    clearInputBuffer();
+    getline(cin, compstation.classification);
 
     cout << "Is compressor station under repair? (0 - no, 1 - yes): ";
     cin >> compstation.working;
     while (cin.fail()) {
         cout << "Error! Enter 0 or 1: ";
         cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        clearInputBuffer();
         cin >> compstation.working;
     }
 
@@ -243,7 +251,6 @@ void loadFromFile(Pipe& pipe, Compress& compstation) {
 
     while (getline(file, line)) {
         if (line.empty()) continue;
-
         if (line == "Pipe parameters:") {
             currentSection = "pipe";
         }
@@ -306,8 +313,8 @@ void loadFromFile(Pipe& pipe, Compress& compstation) {
 void saveToFile(const Pipe& pipe, const Compress& compstation) {
     ofstream file("mydata.txt");
     if (!file.is_open()) {
-        cout << "Error: cannot create file in current directory. Trying desktop...\n";
-        file.open("C:\\Users\\NDR_WDI\\Desktop\\results_data.txt");
+        cout << "Error: cannot create file in current directory.\n";
+        return;
     }
 
     if (file.is_open()) {
@@ -348,7 +355,7 @@ void Menu(Pipe& pipe, Compress& compstation) {
             cout << "Error!" << endl;
             cout << "Enter a valid number (0-7)" << endl;
             cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            clearInputBuffer();
             continue;
         }
 
