@@ -251,56 +251,98 @@ void loadFromFile(Pipe& pipe, Compress& compstation) {
 
     while (getline(file, line)) {
         if (line.empty()) continue;
+
         if (line == "Pipe parameters:") {
             currentSection = "pipe";
+            continue;
         }
         else if (line == "Compressor station parameters:") {
             currentSection = "station";
+            continue;
         }
-        else if (line.find("Name: ") != string::npos) {
-            string name = line.substr(6);
-            if (name != "unknown") {
-                if (currentSection == "pipe") pipe.name = name;
-                else compstation.name = name;
+
+        if (currentSection == "pipe") {
+            if (line.find("Name: ") != string::npos) {
+                string name = line.substr(6);
+                if (name != "unknown") {
+                    pipe.name = name;
+                }
             }
-        }
-        else if (line.find("Length: ") != string::npos) {
-            string lengthStr = line.substr(8);
-            if (lengthStr != "unknown") {
-                pipe.length = stof(lengthStr.substr(0, lengthStr.find(" km")));
+            else if (line.find("Length: ") != string::npos) {
+                string lengthStr = line.substr(8);
+                if (lengthStr != "unknown") {
+                    // Убираем " km" из строки
+                    size_t pos = lengthStr.find(" km");
+                    if (pos != string::npos) {
+                        lengthStr = lengthStr.substr(0, pos);
+                    }
+                    try {
+                        pipe.length = stof(lengthStr);
+                    }
+                    catch (const exception& e) {
+                        pipe.length = -1;
+                    }
+                }
             }
-        }
-        else if (line.find("Diameter: ") != string::npos) {
-            string diameterStr = line.substr(10);
-            if (diameterStr != "unknown") {
-                pipe.diameter = stoi(diameterStr.substr(0, diameterStr.find(" mm")));
+            else if (line.find("Diameter: ") != string::npos) {
+                string diameterStr = line.substr(10);
+                if (diameterStr != "unknown") {
+                    // Убираем " mm" из строки
+                    size_t pos = diameterStr.find(" mm");
+                    if (pos != string::npos) {
+                        diameterStr = diameterStr.substr(0, pos);
+                    }
+                    try {
+                        pipe.diameter = stoi(diameterStr);
+                    }
+                    catch (const exception& e) {
+                        pipe.diameter = -1;
+                    }
+                }
             }
-        }
-        else if (line.find("Under repair: ") != string::npos) {
-            string status = line.substr(14);
-            if (currentSection == "pipe") {
+            else if (line.find("Under repair: ") != string::npos) {
+                string status = line.substr(14);
                 pipe.repair = (status == "yes");
             }
-            else {
+        }
+        else if (currentSection == "station") {
+            if (line.find("Name: ") != string::npos) {
+                string name = line.substr(6);
+                if (name != "unknown") {
+                    compstation.name = name;
+                }
+            }
+            else if (line.find("Number of workshops: ") != string::npos) {
+                string countStr = line.substr(21);
+                if (countStr != "unknown") {
+                    try {
+                        compstation.count = stoi(countStr);
+                    }
+                    catch (const exception& e) {
+                        compstation.count = -1;
+                    }
+                }
+            }
+            else if (line.find("Number of working workshops: ") != string::npos) {
+                string countStr = line.substr(29);
+                if (countStr != "unknown") {
+                    try {
+                        compstation.count_working = stoi(countStr);
+                    }
+                    catch (const exception& e) {
+                        compstation.count_working = -1;
+                    }
+                }
+            }
+            else if (line.find("Classification: ") != string::npos) {
+                string classification = line.substr(16);
+                if (classification != "unknown") {
+                    compstation.classification = classification;
+                }
+            }
+            else if (line.find("Under repair: ") != string::npos) {
+                string status = line.substr(14);
                 compstation.working = (status == "yes");
-            }
-        }
-        else if (line.find("Number of workshops: ") != string::npos) {
-            string countStr = line.substr(21);
-            if (countStr != "unknown") {
-                compstation.count = stoi(countStr);
-            }
-        }
-        else if (line.find("Number of working workshops: ") != string::npos) {
-            string countStr = line.substr(29);
-            if (countStr != "unknown") {
-                compstation.count_working = stoi(countStr);
-            }
-        }
-        else if (line.find("Classification: ") != string::npos) {
-            string classification = line.substr(16);
-            if (classification != "unknown") {
-                compstation.classification = classification;
             }
         }
     }
@@ -317,32 +359,30 @@ void saveToFile(const Pipe& pipe, const Compress& compstation) {
         return;
     }
 
-    if (file.is_open()) {
-        if (!hasData(pipe, compstation)) {
-            file << "No data has been added yet.\n";
-            cout << "File created, but no data has been added yet.\n";
-        }
-        else {
-            file << "Pipe parameters:\n";
-            file << "Name: " << (pipe.name.empty() ? "unknown" : pipe.name) << "\n";
-            file << "Length: " << (pipe.length == -1 ? "unknown" : to_string(pipe.length) + " km") << "\n";
-            file << "Diameter: " << (pipe.diameter == -1 ? "unknown" : to_string(pipe.diameter) + " mm") << "\n";
-            file << "Under repair: " << (pipe.repair ? "yes" : "no") << "\n";
+    if (hasData(pipe, compstation)) {
+        // Pipe data
+        file << "Pipe parameters:\n";
+        file << "Name: " << (pipe.name.empty() ? "unknown" : pipe.name) << "\n";
+        file << "Length: " << (pipe.length == -1 ? "unknown" : to_string(pipe.length)) << " km\n";
+        file << "Diameter: " << (pipe.diameter == -1 ? "unknown" : to_string(pipe.diameter)) << " mm\n";
+        file << "Under repair: " << (pipe.repair ? "yes" : "no") << "\n\n";
 
-            file << "\nCompressor station parameters:\n";
-            file << "Name: " << (compstation.name.empty() ? "unknown" : compstation.name) << "\n";
-            file << "Number of workshops: " << (compstation.count == -1 ? "unknown" : to_string(compstation.count)) << "\n";
-            file << "Number of working workshops: " << (compstation.count_working == -1 ? "unknown" : to_string(compstation.count_working)) << "\n";
-            file << "Classification: " << (compstation.classification.empty() ? "unknown" : compstation.classification) << "\n";
-            file << "Under repair: " << (compstation.working ? "yes" : "no") << "\n";
+        // Compressor station data
+        file << "Compressor station parameters:\n";
+        file << "Name: " << (compstation.name.empty() ? "unknown" : compstation.name) << "\n";
+        file << "Number of workshops: " << (compstation.count == -1 ? "unknown" : to_string(compstation.count)) << "\n";
+        file << "Number of working workshops: " << (compstation.count_working == -1 ? "unknown" : to_string(compstation.count_working)) << "\n";
+        file << "Classification: " << (compstation.classification.empty() ? "unknown" : compstation.classification) << "\n";
+        file << "Under repair: " << (compstation.working ? "yes" : "no") << "\n";
 
-            cout << "Data successfully saved to file 'mydata.txt'\n";
-        }
-        file.close();
+        cout << "Data successfully saved to file 'mydata.txt'\n";
     }
     else {
-        cout << "Error: unable to open file for writing.\n";
+        file << "No data has been added yet.\n";
+        cout << "File created, but no data has been added yet.\n";
     }
+
+    file.close();
 }
 
 void Menu(Pipe& pipe, Compress& compstation) {

@@ -1,0 +1,12 @@
+Pipe parameters:
+Name: 4
+Length: 2.000000 km
+Diameter: 345 mm
+Under repair: yes
+
+Compressor station parameters:
+Name: unknown
+Number of workshops: unknown
+Number of working workshops: unknown
+Classification: unknown
+Under repair: yes
